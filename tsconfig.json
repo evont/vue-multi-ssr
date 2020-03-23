@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "experimentalDecorators": true,
+    "outDir": "./kit-js/",
+    "allowJs": true,
+    "target": "es6",
+    "module": "CommonJS",
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "rootDir": "./"
+  },
+  "include": ["kit/**/*.ts", "kit/*"],
+  "exclude": ["node_modules"]
+}

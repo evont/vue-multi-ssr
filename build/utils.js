@@ -12,17 +12,15 @@ exports.cssLoaders = options => {
     }
   };
 
-  const postcssLoader = {
-    loader: 'postcss-loader',
-    options: {
-      sourceMap: options.sourceMap
-    }
-  };
+  // const postcssLoader = {
+  //   loader: 'postcss-loader',
+  //   options: {
+  //     sourceMap: options.sourceMap
+  //   }
+  // };
 
   function generateLoaders(loader, loaderOptions) {
-    const loaders = options.usePostCSS
-      ? [cssLoader, postcssLoader]
-      : [cssLoader];
+    const loaders = [cssLoader]
 
     if (loader) {
       loaders.push({
@@ -44,12 +42,12 @@ exports.cssLoaders = options => {
 
   return {
     css: generateLoaders(),
-    postcss: generateLoaders(),
-    less: generateLoaders('less'),
-    sass: generateLoaders('sass', { indentedSyntax: true }),
-    scss: generateLoaders('sass'),
-    stylus: generateLoaders('stylus'),
-    styl: generateLoaders('stylus')
+    // postcss: generateLoaders(),
+    // less: generateLoaders('less'),
+    // sass: generateLoaders('sass', { indentedSyntax: true }),
+    // scss: generateLoaders('sass'),
+    // stylus: generateLoaders('stylus'),
+    // styl: generateLoaders('stylus')
   };
 };
 

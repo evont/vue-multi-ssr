@@ -11,7 +11,7 @@ const extractLoader = ExtractPlugin.loader;
 const util = require('./utils');
 const path = require('path');
 
-module.exports = () => ({
+module.exports = (isServer = false) => ({
   mode: 'production',
   module: {
     noParse: /es6-promise\.js$/,
@@ -19,12 +19,13 @@ module.exports = () => ({
       ...util.styleLoaders({
         sourceMap: true,
         extract: true,
-        usePostCSS: true
+        usePostCSS: true,
+        isServer
       }),
       {
         test: /\.vue$/,
         loader: 'vue-loader',
-        options: vueLoaderConfig(isProd, isServer, watch)
+        options: vueLoaderConfig()
       },
       {
         test: /\.(html|ejs)$/,
@@ -32,23 +33,11 @@ module.exports = () => ({
           {
             loader: 'html-loader',
             options: {
-              minimize: true,
-              removeComments: false,
-              attrs: false
-            }
-          }
-        ]
-      },
-      {
-        test: /\.(png|jpg|gif)$/,
-        use: [
-          {
-            loader: 'file-loader',
-            options: {
-              //name: '[path][name].[ext]',
-              name: '[name]2.[ext]', //最后生成的文件名是 output.path+ outputPaht+ name，[name],[ext],[path]表示原来的文件名字，扩展名，路径
-              //useRelativePath:true,
-              outputPath: 'img/' // 后面的/不能少
+              minimize:  {
+                removeComments: false,
+                collapseWhitespace: false,
+              },
+              attributes: false
             }
           }
         ]
@@ -82,12 +71,70 @@ module.exports = () => ({
   },
   performance: {
     maxEntrypointSize: 300000,
-    hints: isProd ? 'warning' : false
+    hints: 'warning'
+  },
+  optimization: {
+    minimizer: [
+     new TerserPlugin({
+        cache: true,
+        parallel: true,
+        terserOptions: {
+          output: { comments: false },
+          mangle: true,
+          compress: {
+            arrows: false,
+            collapse_vars: false,
+            comparisons: false,
+            computed_props: false,
+            hoist_funs: false,
+            hoist_props: false,
+            hoist_vars: false,
+            inline: false,
+            loops: false,
+            negate_iife: false,
+            properties: false,
+            reduce_funcs: false,
+            reduce_vars: false,
+            switches: false,
+            toplevel: false,
+            typeofs: false,
+            booleans: true,
+            if_return: true,
+            sequences: true,
+            unused: true,
+            conditionals: true,
+            dead_code: true,
+            evaluate: true,
+            keep_fargs: false,
+            pure_getters: true,
+            pure_funcs: [
+              'classCallCheck',
+              '_classCallCheck',
+              '_possibleConstructorReturn',
+              'Object.freeze',
+              'invariant',
+              'warning'
+            ]
+          }
+        },
+        sourceMap: false,
+        extractComments: false
+      }),
+      ...(!isServer ? [] : [
+        new OptimizeCssAssetsPlugin({
+          cssProcessorOptions: {
+            // Fix keyframes in different CSS chunks minifying to colliding names:
+            reduceIdents: false
+          }
+        })
+      ])
+    ]
   },
   resolve: {
-    extensions: ['.js', '.ts', '.vue', '.ejs', '.scss', '.css', '.json'],
+    extensions: ['.js', '.ts', '.vue', '.scss', '.css', '.json'],
     alias: {
-      vue: 'vue/dist/vue.esm.js'
+      vue: 'vue/dist/vue.esm.js',
+      '@VueKit': path.resolve(process.cwd(), './src/kit'),
       // ...
     }
   },
