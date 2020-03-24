@@ -1,12 +1,11 @@
-const glob = require('glob');
-const path = require('path');
-const fse = require('fs-extra');
-const VueSSRClientPlugin = require('vue-server-renderer/client-plugin');
+const glob = require("glob");
+const path = require("path");
+const fse = require("fs-extra");
+const VueSSRClientPlugin = require("vue-server-renderer/client-plugin");
 const runWebpack = require("../run-webpack");
 
-const webpackVueConfig = require('./webpack.client.config');
-const webpackVueSSRConfig = require('./webpack.server.config');
-
+const webpackVueConfig = require("./webpack.client.config");
+const webpackVueSSRConfig = require("./webpack.server.config");
 
 async function entries() {
   const entryMap = {};
@@ -15,12 +14,12 @@ async function entries() {
     glob(`${pageRoot}/**/entry-client.js`, (err, files) => {
       err && reject(err);
       files.forEach(item => {
+        // 用于确定生成目录，可能会有多级
         const fileBase = item
-          .replace(`${pageRoot}/`, '')
-          .replace('/entry-client.js', '');
-        const name = fileBase.replace(/\//g, '-');
-
-        const serverEntry = item.replace('client', 'server');
+          .replace(`${pageRoot}/`, "")
+          .replace("/entry-client.js", "");
+        const name = fileBase.replace(/\//g, "-");
+        const serverEntry = item.replace("client", "server");
         const hasSSR = fse.existsSync(serverEntry);
         const result = {
           name,
@@ -63,9 +62,8 @@ async function buildSSRItem(data) {
     console.log(e);
   }
 }
-async function buildSSR() {
+async function buildSSR(entryMap) {
   try {
-    const entryMap = await entries();
     for (const i in entryMap) {
       const item = entryMap[i];
       if (item.hasSSR) {
@@ -77,10 +75,8 @@ async function buildSSR() {
   }
 }
 
-
-async function buildVue() {
+async function buildVue(entryMap) {
   try {
-    const entryMap = await entries();
     const conf = await webpackVueConfig({
       entryMap
     });
@@ -91,8 +87,9 @@ async function buildVue() {
 }
 
 async function build() {
-  await buildSSR();
-  await buildVue()
+  const entryMap = await entries();
+  await buildSSR(entryMap);
+  await buildVue(entryMap);
 }
 
 build();

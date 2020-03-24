@@ -1,4 +1,5 @@
 node_modules
 .vscode
-public
-views
+/public
+/views
+size-plugin.json

@@ -1,13 +1,16 @@
 module.exports = {
-  mobile: async (ctx) => {
+  mobile: async ctx => {
     await ctx.renderView({
-      name: 'mobile'
+      name: "mobile"
     });
   },
-  pc: async (ctx) => {
+  pc: async ctx => {
     await ctx.renderView({
-      name: 'pc',
+      name: "pc",
       isssr: true
     });
+  },
+  home: async ctx => {
+    ctx.body = "home page";
   }
-}
+};

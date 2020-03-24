@@ -1,12 +1,12 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable guard-for-in */
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 exports.cssLoaders = options => {
   options = options || {};
 
   const cssLoader = {
-    loader: 'css-loader',
+    loader: "css-loader",
     options: {
       sourceMap: options.sourceMap
     }
@@ -20,7 +20,7 @@ exports.cssLoaders = options => {
   // };
 
   function generateLoaders(loader, loaderOptions) {
-    const loaders = [cssLoader]
+    const loaders = [cssLoader];
 
     if (loader) {
       loaders.push({
@@ -32,16 +32,16 @@ exports.cssLoaders = options => {
     }
     if (options.extract) {
       if (options.isServer) {
-        return ['null-loader'].concat(loaders);
+        return ["null-loader"].concat(loaders);
       } else {
         return [MiniCssExtractPlugin.loader].concat(loaders);
       }
     }
-    return ['vue-style-loader'].concat(loaders);
+    return ["vue-style-loader"].concat(loaders);
   }
 
   return {
-    css: generateLoaders(),
+    css: generateLoaders()
     // postcss: generateLoaders(),
     // less: generateLoaders('less'),
     // sass: generateLoaders('sass', { indentedSyntax: true }),

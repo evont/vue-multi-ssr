@@ -1,4 +1,4 @@
-const utils = require('./utils');
+const utils = require("./utils");
 
 module.exports = (extract = true) => ({
   loaders: utils.cssLoaders({
@@ -8,9 +8,9 @@ module.exports = (extract = true) => ({
   cssSourceMap: true,
   cacheBusting: true,
   transformToRequire: {
-    video: ['src', 'poster'],
-    source: 'src',
-    img: 'src',
-    image: 'xlink:href'
+    video: ["src", "poster"],
+    source: "src",
+    img: "src",
+    image: "xlink:href"
   }
 });

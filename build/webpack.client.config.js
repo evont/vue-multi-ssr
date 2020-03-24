@@ -1,49 +1,49 @@
-const merge = require('webpack-merge');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const path = require('path');
-const webpack = require('webpack');
-const baseConfig = require('./webpack.base.config');
+const merge = require("webpack-merge");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const path = require("path");
+const webpack = require("webpack");
+const baseConfig = require("./webpack.base.config");
 
 module.exports = async (options = {}) => {
   const { entryMap } = options;
 
   const config = {
     output: options.output || {
-      path: path.resolve(process.cwd(), './public/'),
-      publicPath: '/',
-      filename: 'js/app/[name].js',
-      chunkFilename: 'js/chunk/[name].js'
+      path: path.resolve(process.cwd(), "./public/"),
+      publicPath: "/",
+      filename: "js/app/[name].js",
+      chunkFilename: "js/chunk/[name].js"
     },
     resolve: {
       alias: {
-        '@Kit': path.resolve(process.cwd(), './kit/browser')
+        "@Kit": path.resolve(process.cwd(), "./kit/browser")
       }
     },
     plugins: [
       new webpack.DefinePlugin({
-        'process.env.VUE_ENV': '"client"'
+        "process.env.VUE_ENV": '"client"'
       }),
       new MiniCssExtractPlugin({
-        filename: 'css/app/[name].css'
+        filename: "css/app/[name].css"
       })
     ],
-    optimization: options.optimization || {
+    optimization: {
       splitChunks: {
         cacheGroups: {
           vendors: {
             // 项目基本框架等
-            chunks: 'initial',
+            chunks: "initial",
             test: /node_modules/,
             priority: 100,
-            name: 'chunk-vendors'
+            name: "chunk-vendors"
           },
           kits: {
             // 项目基本框架等
-            chunks: 'initial',
+            chunks: "initial",
             test: /kit/i,
             priority: 80,
-            name: 'kits'
+            name: "kits"
           }
         }
       }
@@ -54,8 +54,8 @@ module.exports = async (options = {}) => {
       template: data.template,
       filename: `../views/${data.fileBase}/index.html`,
       inject: true,
-      chunksSortMode: 'manual',
-      chunks: ['chunk-vendors', 'kits', data.name]
+      chunksSortMode: "manual",
+      chunks: ["chunk-vendors", "kits", data.name]
     });
   }
   if (options.plugins) {

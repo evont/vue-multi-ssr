@@ -1,18 +1,21 @@
-const webpack = require('webpack');
-const SizePlugin = require('size-plugin');
-const FixStyleOnlyEntriesPlugin = require('webpack-fix-style-only-entries');
-const TerserPlugin = require('terser-webpack-plugin');
-const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
-const VueLoaderPlugin = require('vue-loader/lib/plugin');
-const vueLoaderConfig = require('./vue-loader.conf');
-const ExtractPlugin = require('./extract-plugin');
-const ProgressBarPlugin = require('progress-bar-webpack-plugin');
-const extractLoader = ExtractPlugin.loader;
-const util = require('./utils');
-const path = require('path');
+const webpack = require("webpack");
+
+// 可忽略可选配置
+const SizePlugin = require("size-plugin");
+const FixStyleOnlyEntriesPlugin = require("webpack-fix-style-only-entries");
+const TerserPlugin = require("terser-webpack-plugin");
+const OptimizeCssAssetsPlugin = require("optimize-css-assets-webpack-plugin");
+const ProgressBarPlugin = require("progress-bar-webpack-plugin");
+// ---
+
+const VueLoaderPlugin = require("vue-loader/lib/plugin");
+const vueLoaderConfig = require("./vue-loader.conf");
+
+const util = require("./utils");
+const path = require("path");
 
 module.exports = (isServer = false) => ({
-  mode: 'production',
+  mode: "production",
   module: {
     noParse: /es6-promise\.js$/,
     rules: [
@@ -24,18 +27,18 @@ module.exports = (isServer = false) => ({
       }),
       {
         test: /\.vue$/,
-        loader: 'vue-loader',
+        loader: "vue-loader",
         options: vueLoaderConfig()
       },
       {
         test: /\.(html|ejs)$/,
         use: [
           {
-            loader: 'html-loader',
+            loader: "html-loader",
             options: {
-              minimize:  {
+              minimize: {
                 removeComments: false,
-                collapseWhitespace: false,
+                collapseWhitespace: false
               },
               attributes: false
             }
@@ -46,13 +49,12 @@ module.exports = (isServer = false) => ({
         test: /\.js$/,
         use: [
           {
-            loader: 'babel-loader',
+            loader: "babel-loader",
             options: {
-              // 如果有这个设置则不用再添加.babelrc文件进行配置
-              presets: ['@babel/preset-env'],
+              presets: ["@babel/preset-env"],
               plugins: [
-                'syntax-dynamic-import',
-                '@babel/plugin-proposal-class-properties'
+                "syntax-dynamic-import",
+                "@babel/plugin-proposal-class-properties"
               ]
             }
           }
@@ -63,7 +65,7 @@ module.exports = (isServer = false) => ({
         exclude: /node_modules/,
         use: [
           {
-            loader: 'ts-loader'
+            loader: "ts-loader"
           }
         ]
       }
@@ -71,11 +73,11 @@ module.exports = (isServer = false) => ({
   },
   performance: {
     maxEntrypointSize: 300000,
-    hints: 'warning'
+    hints: "warning"
   },
   optimization: {
     minimizer: [
-     new TerserPlugin({
+      new TerserPlugin({
         cache: true,
         parallel: true,
         terserOptions: {
@@ -108,33 +110,35 @@ module.exports = (isServer = false) => ({
             keep_fargs: false,
             pure_getters: true,
             pure_funcs: [
-              'classCallCheck',
-              '_classCallCheck',
-              '_possibleConstructorReturn',
-              'Object.freeze',
-              'invariant',
-              'warning'
+              "classCallCheck",
+              "_classCallCheck",
+              "_possibleConstructorReturn",
+              "Object.freeze",
+              "invariant",
+              "warning"
             ]
           }
         },
         sourceMap: false,
         extractComments: false
       }),
-      ...(!isServer ? [] : [
-        new OptimizeCssAssetsPlugin({
-          cssProcessorOptions: {
-            // Fix keyframes in different CSS chunks minifying to colliding names:
-            reduceIdents: false
-          }
-        })
-      ])
+      ...(!isServer
+        ? []
+        : [
+            new OptimizeCssAssetsPlugin({
+              cssProcessorOptions: {
+                // Fix keyframes in different CSS chunks minifying to colliding names:
+                reduceIdents: false
+              }
+            })
+          ])
     ]
   },
   resolve: {
-    extensions: ['.js', '.ts', '.vue', '.scss', '.css', '.json'],
+    extensions: [".js", ".ts", ".vue", ".scss", ".css", ".json"],
     alias: {
-      vue: 'vue/dist/vue.esm.js',
-      '@VueKit': path.resolve(process.cwd(), './src/kit'),
+      vue: "vue/dist/vue.esm.js",
+      "@VueKit": path.resolve(process.cwd(), "./src/kit")
       // ...
     }
   },
@@ -147,7 +151,7 @@ module.exports = (isServer = false) => ({
     new webpack.optimize.ModuleConcatenationPlugin(),
     new ProgressBarPlugin({
       format:
-        '\u001b[90m\u001b[44mBuild\u001b[49m\u001b[39m [:bar] \u001b[32m\u001b[1m:percent\u001b[22m\u001b[39m (:elapseds) \u001b[2m:msg\u001b[22m',
+        "\u001b[90m\u001b[44mBuild\u001b[49m\u001b[39m [:bar] \u001b[32m\u001b[1m:percent\u001b[22m\u001b[39m (:elapseds) \u001b[2m:msg\u001b[22m",
       renderThrottle: 100,
       summary: false,
       clear: true
