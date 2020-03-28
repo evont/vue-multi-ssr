@@ -9,6 +9,7 @@ const app = new Koa();
 const router = koaRouter();
 router.get("/mobile/*", ctrl.mobile);
 router.get("/pc/*", ctrl.pc);
+router.get("/pc2/*", ctrl.pc2);
 router.get("/", ctrl.home);
 app.use(router.routes());
 

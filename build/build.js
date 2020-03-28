@@ -1,7 +1,7 @@
 const glob = require("glob");
 const path = require("path");
 const fse = require("fs-extra");
-const VueSSRClientPlugin = require("vue-server-renderer/client-plugin");
+// const VueSSRClientPlugin = require("vue-server-renderer/client-plugin");
 const runWebpack = require("../run-webpack");
 
 const webpackVueConfig = require("./webpack.client.config");
@@ -42,22 +42,24 @@ async function entries() {
 async function buildSSRItem(data) {
   try {
     const confServer = await webpackVueSSRConfig(
-      data.serverEntry,
-      data.fileBase
+      {
+        entry: data.serverEntry,
+        dirname: data.fileBase
+      }
     );
     await runWebpack(confServer);
-    const confClient = await webpackVueConfig({
-      data,
-      entry: {
-        [data.name]: data.entry
-      },
-      plugins: [
-        new VueSSRClientPlugin({
-          filename: `../views/${data.fileBase}/vue-ssr-client-manifest.json`
-        })
-      ]
-    });
-    await runWebpack(confClient);
+    // const confClient = await webpackVueConfig({
+    //   data,
+    //   entry: {
+    //     [data.name]: data.entry
+    //   },
+    //   plugins: [
+    //     new VueSSRClientPlugin({
+    //       filename: `../views/${data.fileBase}/vue-ssr-client-manifest.json`
+    //     })
+    //   ]
+    // });
+    // await runWebpack(confClient);
   } catch (e) {
     console.log(e);
   }
@@ -70,6 +72,11 @@ async function buildSSR(entryMap) {
         await buildSSRItem(item);
       }
     }
+    // const conf = await webpackVueSSRConfig({
+    //   entryMap
+    // });
+   // await runWebpack(conf);
+
   } catch (e) {
     console.log(e);
   }

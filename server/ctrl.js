@@ -10,6 +10,12 @@ module.exports = {
       isssr: true
     });
   },
+  pc2: async ctx => {
+    await ctx.renderView({
+      name: "pc2",
+      isssr: true
+    });
+  },
   home: async ctx => {
     ctx.body = "home page";
   }

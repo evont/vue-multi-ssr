@@ -6,14 +6,15 @@ const VueSSRServerPlugin = require("vue-server-renderer/server-plugin");
 
 const baseConfig = require("./webpack.base.config");
 
-module.exports = (entry, dirname) => {
+module.exports = (options = {}) => {
+  const { entryMap, entry, dirname = '' } = options;
   const config = {
     target: "node",
     devtool: "#source-map",
-    entry,
+    // entry,
     output: {
-      path: path.resolve(process.cwd(), `./views/${dirname}/`),
-      filename: "server-bundle.js",
+      path: path.resolve(process.cwd(), `./views/${dirname}`),
+      filename: "server-bundle-[name].js",
       libraryTarget: "commonjs2"
     },
     externals: nodeExternals({
@@ -31,5 +32,21 @@ module.exports = (entry, dirname) => {
       new VueSSRServerPlugin()
     ]
   };
+  let newEntry = options.entry || {};
+  // if (!options.entry) {
+  //   for (const i in entryMap) {
+  //     const item = entryMap[i];
+  //     if (item.hasSSR) {
+  //       newEntry[item.name] = item.entry;
+  //       config.plugins.push(
+  //         new VueSSRServerPlugin({
+  //           key: item.name,
+  //           filename: `../views/${item.fileBase}/vue-ssr-server-bundle.json`
+  //         })
+  //      )
+  //     }
+  //   }
+  // }
+  config.entry = newEntry;
   return merge(baseConfig(true), config);
 };

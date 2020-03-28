@@ -69,11 +69,18 @@ export default class VueKit {
     });
     return app;
   }
-  static createSSR({ App, cb }) {
+  static createSSR({ App, cb, plugins = [], options = {} }) {
     Vue.use(kitPlugin);
     return ctx => {
       return new Promise((resolve, reject) => {
         const kit = VueKit.createKit(ctx);
+        const opt = {
+          App,
+          Vue,
+          ctx,
+          plugins,
+          options
+        }
         if (App.asyncData) {
           Promise.resolve(App.asyncData(kit))
             .then(result => {
@@ -83,24 +90,16 @@ export default class VueKit {
               } catch (err) {
                 reject(err);
               }
+              opt.$store = result;
               resolve(
-                VueKit.createApp({
-                  App,
-                  Vue,
-                  ctx,
-                  $store: result
-                })
+                VueKit.createApp(opt)
               );
             })
             .catch(err => {
               // 请求超时则不再服务端渲染
               if (/timeout/i.test(err.message)) {
                 resolve(
-                  VueKit.createApp({
-                    App,
-                    Vue,
-                    ctx
-                  })
+                  VueKit.createApp(opt)
                 );
               } else {
                 reject(err);
@@ -108,11 +107,7 @@ export default class VueKit {
             });
         } else {
           resolve(
-            VueKit.createApp({
-              App,
-              Vue,
-              ctx
-            })
+            VueKit.createApp(opt)
           );
         }
       }).catch(error => {
