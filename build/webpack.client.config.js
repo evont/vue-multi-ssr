@@ -4,7 +4,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const path = require("path");
 const webpack = require("webpack");
 const baseConfig = require("./webpack.base.config");
-const VueSSRClientPlugin = require("./plugin/client");
+const VueSSRClientPlugin = require("vue-server-renderer/client-plugin");
 module.exports = async (options = {}) => {
   const { entryMap } = options;
 
@@ -67,15 +67,15 @@ module.exports = async (options = {}) => {
       const item = entryMap[i];
       newEntry[item.name] = item.entry;
       config.plugins.push(getHtmlPlugin(item));
-      if (item.hasSSR) {
-        config.plugins.push(
-          new VueSSRClientPlugin({
-            key: item.name,
-            chunks: ["chunk-vendors", "kits", item.name],
-            filename: `../views/${item.fileBase}/vue-ssr-client-manifest.json`
-          })
-       )
-      }
+      // if (item.hasSSR) {
+      //   config.plugins.push(
+      //     new VueSSRClientPlugin({
+      //       key: item.name,
+      //       chunks: ["chunk-vendors", "kits", item.name],
+      //       filename: `../views/${item.fileBase}/vue-ssr-client-manifest.json`
+      //     })
+      //  )
+      // }
     }
   }
   config.entry = newEntry;

@@ -60,6 +60,7 @@ VueSSRClientPlugin.prototype.apply = function apply (compiler) {
     }
     var allFiles = entryAssets && entryAssets.length ? entryAssets : uniq(stats.assets
       .map(function (a) { return a.name; }));
+    console.log(stats.chunks)
 
     var initialFiles = uniq(Object.keys(stats.entrypoints)
       .map(function (name) { return stats.entrypoints[name].assets; })

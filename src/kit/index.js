@@ -76,12 +76,38 @@ export default class VueKit {
         const kit = VueKit.createKit(ctx);
         const opt = {
           App,
-          Vue,
           ctx,
           plugins,
           options
         }
-        if (App.asyncData) {
+        const { router } = options;
+        
+        if (router) {
+          const app = VueKit.createApp(opt);
+          // console.log(router);
+          const { url } = ctx;
+          router.push(url);
+          const { fullPath } = router.resolve(url).route;
+          if (fullPath !== url) {
+            return reject({ url: fullPath })
+          }
+          router.onReady(() => {
+            const matchedComponents = router.getMatchedComponents();
+            if (!matchedComponents.length) {
+              return reject({ code: 404 })
+            }
+            Promise.all(matchedComponents.map(({ asyncData }) => asyncData && asyncData(kit))).then(result => {
+              // ctx.state = result;
+              // try {
+              //   cb && cb(ctx, result);
+              // } catch (err) {
+              //   reject(err);
+              // }
+              // opt.$store = result;
+              resolve(app);
+            })
+          }, reject)
+        } else if (App.asyncData) {
           Promise.resolve(App.asyncData(kit))
             .then(result => {
               ctx.state = result;

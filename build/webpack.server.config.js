@@ -4,6 +4,8 @@ const path = require("path");
 const nodeExternals = require("webpack-node-externals");
 const VueSSRServerPlugin = require("vue-server-renderer/server-plugin");
 
+// const VueSSRServerPlugin = require("./plugin/server");
+
 const baseConfig = require("./webpack.base.config");
 
 module.exports = (options = {}) => {
@@ -28,25 +30,28 @@ module.exports = (options = {}) => {
     plugins: [
       new webpack.DefinePlugin({
         "process.env.VUE_ENV": '"server"'
-      }),
-      new VueSSRServerPlugin()
+      })
     ]
   };
   let newEntry = options.entry || {};
-  // if (!options.entry) {
-  //   for (const i in entryMap) {
-  //     const item = entryMap[i];
-  //     if (item.hasSSR) {
-  //       newEntry[item.name] = item.entry;
-  //       config.plugins.push(
-  //         new VueSSRServerPlugin({
-  //           key: item.name,
-  //           filename: `../views/${item.fileBase}/vue-ssr-server-bundle.json`
-  //         })
-  //      )
-  //     }
-  //   }
-  // }
+  if (!options.entry) {
+    for (const i in entryMap) {
+      const item = entryMap[i];
+      if (item.hasSSR) {
+        newEntry[item.name] = item.entry;
+        config.plugins.push(
+          new VueSSRServerPlugin({
+            key: item.name,
+            filename: `${item.fileBase}/vue-ssr-server-bundle.json`
+          })
+       )
+      }
+    }
+  } else {
+    config.plugins.push(new VueSSRServerPlugin({
+      // filename: `../views/${dirname}/vue-ssr-server-bundle.json`
+    }));
+  }
   config.entry = newEntry;
   return merge(baseConfig(true), config);
 };

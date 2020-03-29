@@ -38,7 +38,7 @@ async function entries() {
   });
   return entryMap;
 }
-
+const VueSSRClientPlugin = require("vue-server-renderer/client-plugin");
 async function buildSSRItem(data) {
   try {
     const confServer = await webpackVueSSRConfig(
@@ -48,18 +48,18 @@ async function buildSSRItem(data) {
       }
     );
     await runWebpack(confServer);
-    // const confClient = await webpackVueConfig({
-    //   data,
-    //   entry: {
-    //     [data.name]: data.entry
-    //   },
-    //   plugins: [
-    //     new VueSSRClientPlugin({
-    //       filename: `../views/${data.fileBase}/vue-ssr-client-manifest.json`
-    //     })
-    //   ]
-    // });
-    // await runWebpack(confClient);
+    const confClient = await webpackVueConfig({
+      data,
+      entry: {
+        [data.name]: data.entry
+      },
+      plugins: [
+        new VueSSRClientPlugin({
+          filename: `../views/${data.fileBase}/vue-ssr-client-manifest.json`
+        })
+      ]
+    });
+    await runWebpack(confClient);
   } catch (e) {
     console.log(e);
   }

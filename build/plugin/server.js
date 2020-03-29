@@ -39,6 +39,10 @@ var onEmit = function (compiler, name, hook) {
   }
 };
 
+var uniq = require('lodash.uniq');
+
+var assetsCache = {};
+var statAssetsCache = [];
 var VueSSRServerPlugin = function VueSSRServerPlugin (options) {
   if ( options === void 0 ) options = {};
 
@@ -54,6 +58,9 @@ VueSSRServerPlugin.prototype.apply = function apply (compiler) {
 
   onEmit(compiler, 'vue-server-plugin', function (compilation, cb) {
     var stats = compilation.getStats().toJson();
+
+    assetsCache = Object.assign({}, assetsCache, compilation.assets);
+    statAssetsCache = uniq(statAssetsCache.concat(stats.assets))
     var entryName = Object.keys(stats.entrypoints)[0];
     var entryInfo = stats.entrypoints[entryName];
     var entryKey = this$1.options.key;
@@ -95,24 +102,45 @@ VueSSRServerPlugin.prototype.apply = function apply (compiler) {
     stats.chunks.forEach(function (chunk) {
       chunkMap[chunk.id] = chunk;
     })
-    // console.log(stats.assets, chunkMap, entry)
+    var entryFiles = uniq(Object.keys(chunkMap).
+      filter(function (chunkId) { 
+        let chunkFile = chunkMap[chunkId].files && chunkMap[chunkId].files[0]; 
+        if (chunkMap[chunkId] && chunkMap[chunkId].parents && chunkMap[chunkId].parents.length) { 
+          chunkFile = chunkMap[chunkMap[chunkId].parents[0]].files[0] 
+        } 
+        // console.log(chunkFile); 
+        return chunkFile && chunkFile == entry
+      }).map(chunkId => {
+        return chunkMap[chunkId].files
+      }).reduce(function (all, file) { return all.concat(file)}, [])
+    )
+
     var filename = this$1.options.filename;
-    stats.assets.forEach(function (asset) {
-      const chunkId = asset.chunks[0];
-      if (chunkMap[chunkId] && chunkMap[chunkId].parents && chunkMap[chunkId].parents.length) {
-        const parentId = chunkMap[chunkId].parents[0];
-        asset.parent = chunkMap[parentId].files[0];
-        console.log(asset.parent);
+    statAssetsCache.forEach(function (asset) {
+      if (entryFiles.indexOf(asset.name) >= 0) {
+        if (isJS(asset.name)) {
+          bundle.files[asset.name] = assetsCache[asset.name].source();
+          
+        } else if (asset.name.match(/\.js\.map$/)) {
+          bundle.maps[asset.name.replace(/\.map$/, '')] = JSON.parse(assetsCache[asset.name].source());
+        }
       }
-      if (isJS(asset.name) && (new RegExp(entry).test(asset.name) || (asset.parent && asset.parent === entry))) {
-        bundle.files[asset.name] = compilation.assets[asset.name].source();
-        delete compilation.assets[asset.name];
-      } else if (asset.name.match(/\.js\.map$/)) {
-        bundle.maps[asset.name.replace(/\.map$/, '')] = JSON.parse(compilation.assets[asset.name].source());
-        delete compilation.assets[asset.name];
-      }
-     
+      delete compilation.assets[asset.name];
     });
+    // stats.assets.forEach(function (asset) {
+    //   if (entryFiles.indexOf(asset.name) >= 0) {
+    //     if (isJS(asset.name)) {
+    //       bundle.files[asset.name] = assetsCache[asset.name].source();
+          
+    //     } else if (asset.name.match(/\.js\.map$/)) {
+    //       bundle.maps[asset.name.replace(/\.map$/, '')] = JSON.parse(assetsCache[asset.name].source());
+    //     }
+    //   }
+    //   delete compilation.assets[asset.name];
+    // });
+    // stats.assets.forEach(function (asset) {
+    //   delete compilation.assets[asset.name];
+    // })
 
     var json = JSON.stringify(bundle, null, 2);
 
