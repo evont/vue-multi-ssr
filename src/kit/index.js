@@ -23,17 +23,17 @@ const kitPlugin = {
         // 子组件从其父组件引用 $kit 属性
         this.$kit = options.parent.$kit;
       }
+
+      if (options.store) {
+        this.$store =
+          typeof options.store === 'function' ? options.store() : options.store;
+      } else if (options.parent && options.parent.$store) {
+        // 子组件从其父组件引用 $kit 属性
+        this.$store = options.parent.$store;
+      }
     }
 
     _Vue.mixin({
-      data() {
-        return { store: {} };
-      },
-      created() {
-        if (this.$store) {
-          this.store = this.$store;
-        }
-      },
       beforeCreate: kitInit
     });
   }
@@ -44,15 +44,14 @@ export default class VueKit {
     const Ctor = ctx && ctx.Kit || Kit;
     return new Ctor(ctx && ctx.context);
   }
-  static createApp({ App, ctx, $store, plugins = [], options = {} }) {
+  static createApp({ App, ctx, store, plugins = [], options = {} }) {
     Vue.use(kitPlugin);
-    let store;
-    if ($store) {
-      store = $store;
-    } else if (isBrowser && window.__INITIAL_STATE__) {
-      store = window.__INITIAL_STATE__;
-    } else {
-      store = {};
+    if (!store) {
+      if (isBrowser && window.__INITIAL_STATE__) {
+        store = window.__INITIAL_STATE__;
+      } else {
+        store = {};
+      }
     }
     if (plugins && plugins.length) {
       plugins.forEach(item => {
@@ -60,9 +59,7 @@ export default class VueKit {
       });
     }
     const app = new Vue({
-      provide: {
-        $store: store
-      },
+      store,
       kit: VueKit.createKit(ctx),
       ...options,
       render: h => h(App)
@@ -83,28 +80,37 @@ export default class VueKit {
         const { router } = options;
         
         if (router) {
-          const app = VueKit.createApp(opt);
+          let app = VueKit.createApp(opt);
           // console.log(router);
           const { url } = ctx;
-          router.push(url);
+          let serverUrl = url;
+          // 兼容SSR 模式下，vue-router 不支持base 导致路由404的问题
+          const { base } = router.options;
+          if (base && serverUrl.indexOf(base) === 0) {
+            serverUrl = serverUrl.slice(base.length)
+          }
+          router.push(serverUrl);
           const { fullPath } = router.resolve(url).route;
           if (fullPath !== url) {
             return reject({ url: fullPath })
           }
           router.onReady(() => {
-            const matchedComponents = router.getMatchedComponents();
+            let matchedComponents = router.getMatchedComponents();
             if (!matchedComponents.length) {
               return reject({ code: 404 })
             }
-            Promise.all(matchedComponents.map(({ asyncData }) => asyncData && asyncData(kit))).then(result => {
-              // ctx.state = result;
-              // try {
-              //   cb && cb(ctx, result);
-              // } catch (err) {
-              //   reject(err);
-              // }
-              // opt.$store = result;
-              resolve(app);
+            matchedComponents = matchedComponents[0];
+            Promise.resolve(matchedComponents && matchedComponents.asyncData(kit)).then(result => {
+              ctx.state = result;
+              try {
+                cb && cb(ctx, result);
+              } catch (err) {
+                reject(err);
+              }
+              opt.store = result;
+              // app = VueKit.createApp(opt);
+              // console.log(app);
+              resolve(VueKit.createApp(opt));
             })
           }, reject)
         } else if (App.asyncData) {
