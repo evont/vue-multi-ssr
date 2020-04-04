@@ -31,6 +31,9 @@ const kitPlugin = {
         // 子组件从其父组件引用 $kit 属性
         this.$store = options.parent.$store;
       }
+      this.setStore = function(store) {
+        this.$store = store;
+      }
     }
 
     _Vue.mixin({
@@ -66,7 +69,7 @@ export default class VueKit {
     });
     return app;
   }
-  static createSSR({ App, cb, plugins = [], options = {} }) {
+  static createSSR({ App, cb, customInit, options = {} }) {
     Vue.use(kitPlugin);
     return ctx => {
       return new Promise((resolve, reject) => {
@@ -74,46 +77,13 @@ export default class VueKit {
         const opt = {
           App,
           ctx,
-          plugins,
           options
         }
-        const { router } = options;
-        
-        if (router) {
-          let app = VueKit.createApp(opt);
-          // console.log(router);
-          const { url } = ctx;
-          let serverUrl = url;
-          // 兼容SSR 模式下，vue-router 不支持base 导致路由404的问题
-          const { base } = router.options;
-          if (base && serverUrl.indexOf(base) === 0) {
-            serverUrl = serverUrl.slice(base.length)
-          }
-          router.push(serverUrl);
-          const { fullPath } = router.resolve(url).route;
-          if (fullPath !== url) {
-            return reject({ url: fullPath })
-          }
-          router.onReady(() => {
-            let matchedComponents = router.getMatchedComponents();
-            if (!matchedComponents.length) {
-              return reject({ code: 404 })
-            }
-            matchedComponents = matchedComponents[0];
-            Promise.resolve(matchedComponents && matchedComponents.asyncData(kit)).then(result => {
-              ctx.state = result;
-              try {
-                cb && cb(ctx, result);
-              } catch (err) {
-                reject(err);
-              }
-              opt.store = result;
-              // app = VueKit.createApp(opt);
-              // console.log(app);
-              resolve(VueKit.createApp(opt));
-            })
-          }, reject)
-        } else if (App.asyncData) {
+        if (customInit) {
+          customInit({ VueKit, Vue, opt, kit, cb }).then(app => resolve(app)).catch(reject);
+          return;
+        }
+        if (App.asyncData) {
           Promise.resolve(App.asyncData(kit))
             .then(result => {
               ctx.state = result;
