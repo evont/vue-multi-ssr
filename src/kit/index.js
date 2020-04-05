@@ -28,7 +28,6 @@ const kitPlugin = {
         this.$store =
           typeof options.store === 'function' ? options.store() : options.store;
       } else if (options.parent && options.parent.$store) {
-        // 子组件从其父组件引用 $kit 属性
         this.$store = options.parent.$store;
       }
       this.setStore = function(store) {
@@ -69,7 +68,7 @@ export default class VueKit {
     });
     return app;
   }
-  static createSSR({ App, cb, customInit, options = {} }) {
+  static createSSR({ App, cb, resolver, plugins = [], options = {} }) {
     Vue.use(kitPlugin);
     return ctx => {
       return new Promise((resolve, reject) => {
@@ -77,36 +76,44 @@ export default class VueKit {
         const opt = {
           App,
           ctx,
+          plugins,
           options
         }
-        if (customInit) {
-          customInit({ VueKit, Vue, opt, kit, cb }).then(app => resolve(app)).catch(reject);
-          return;
+        // if (customInit) {
+        //   customInit({ VueKit, Vue, opt, kit, cb }).then(app => resolve(app)).catch(reject);
+        //   return;
+        // }
+        let app = VueKit.createApp(opt);
+        if (!resolver) {
+          resolver = (_ctx, _kit) => {
+            return new Promise((resolve, reject) => {
+              resolve(App.asyncData && App.asyncData(_kit))
+            })
+          }
         }
-        if (App.asyncData) {
-          Promise.resolve(App.asyncData(kit))
-            .then(result => {
+        if (resolver) {
+          resolver(ctx, kit).then(result => {
+            if (result) {
               ctx.state = result;
-              try {
-                cb && cb(ctx, result);
-              } catch (err) {
-                reject(err);
-              }
-              opt.$store = result;
+              app.setStore(result);
+            }
+            try {
+              cb && cb(ctx, result);
+            } catch (err) {
+              reject(err);
+            }
+            resolve(app);
+          })
+          .catch(err => {
+            // 请求超时则不再服务端渲染
+            if (/timeout/i.test(err.message)) {
               resolve(
                 VueKit.createApp(opt)
               );
-            })
-            .catch(err => {
-              // 请求超时则不再服务端渲染
-              if (/timeout/i.test(err.message)) {
-                resolve(
-                  VueKit.createApp(opt)
-                );
-              } else {
-                reject(err);
-              }
-            });
+            } else {
+              reject(err);
+            }
+          });
         } else {
           resolve(
             VueKit.createApp(opt)

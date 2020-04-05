@@ -1,9 +1,10 @@
 import App from './App.vue';
 import VueKit from '@VueKit';
-import { options, customInit } from './plugin';
+import { options, plugins, resolver } from './plugin';
 
 export default VueKit.createSSR({
   App,
   options,
-  customInit
+  plugins,
+  resolver
 });

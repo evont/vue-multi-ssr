@@ -1,22 +1,19 @@
 <template>
   <div class="pc2">
-    <p>Page2</p>
-    <p>ua: {{ ua }}</p>
-     <router-view></router-view>
+    <p>child</p>
+    <p>{{ childData }}</p>
   </div>
 </template>
 
 <script>
 export default {
-  name: "page2",
+  name: "page2-child",
   asyncData(Kit) {
-    return Promise.resolve({
-      ua: Kit.env.userAgent,
-    })
+    return Promise.resolve({ childData: 'childData' })
   },
   computed: {
-    ua() {
-      return this.$store.page2.ua || '';
+    childData() {
+      return this.$store["page2-child"].childData;
     }
   }
 };

@@ -10,10 +10,7 @@
 export default {
   computed: {
     ua() {
-      return this.$store.ua || '';
-    },
-    data() {
-      return this.$store.data || {};
+      return this.$store.page2.ua || '';
     }
   }
 };
